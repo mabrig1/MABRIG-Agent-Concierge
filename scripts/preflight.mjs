@@ -1,0 +1,12 @@
+import {readFileSync} from 'node:fs';
+import assert from 'node:assert/strict';
+const wrangler=JSON.parse(readFileSync('wrangler.jsonc','utf8'));
+assert.equal(wrangler.name,'mabrig-agent-concierge-pilot');
+assert.equal(wrangler.main,'src/worker.mjs');
+assert.equal(wrangler.assets.directory,'./dist');
+assert.ok(wrangler.assets.run_worker_first.includes('/api/*'));
+const db=wrangler.d1_databases?.find(x=>x.binding==='DB');
+assert.equal(db?.database_name,'mabrig-concierge-pilot');
+assert.match(db?.database_id||'',/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i);
+assert.equal(wrangler.routes,undefined,'Custom domain must be enabled separately after the hostname is verified.');
+console.log('Preflight passed: Worker, assets, D1 ID and safe domain staging verified.');
