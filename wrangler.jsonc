@@ -6,9 +6,16 @@
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
-    "run_worker_first": ["/api/*"]
+    "run_worker_first": [
+      "/api/*"
+    ]
   },
   "d1_databases": [
-    { "binding": "DB", "database_name": "mabrig-concierge-pilot", "database_id": "REPLACE_WITH_SEPARATE_D1_DATABASE_ID", "migrations_dir": "db" }
+    {
+      "binding": "DB",
+      "database_name": "mabrig-concierge-pilot",
+      "database_id": "009a5284-3c1f-4156-ba73-bb02b2ecb556",
+      "migrations_dir": "db"
+    }
   ]
 }
