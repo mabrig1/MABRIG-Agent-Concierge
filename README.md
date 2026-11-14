@@ -1,6 +1,15 @@
 # MABRIG Agent Concierge
 
-**Your AI, ready to work.** Mobile-first assistant setup for non-technical users. Version **0.3.0** adds an isolated Cloudflare Worker backend and a limited, consent-based Google Calendar integration. It is **packaged for independent deployment but is not a deployed or production-approved customer service**.
+**Your AI, ready to work.** Mobile-first assistant setup for non-technical users. Version **0.4.0** includes an isolated Cloudflare Worker backend and a limited, consent-based Google Calendar integration. It is **packaged for independent deployment but is not a deployed or production-approved customer service**.
+
+## New in v0.4: automatic API setup
+
+- Auto API setup dashboard accepts an everyday goal and recommends an assistant and service-by-service connection steps.
+- `GET /api/setup/readiness`: checks the D1 schema, canonical hostname and secure OAuth prerequisites without exposing credential values.
+- `POST /api/setup/plan`: makes a deterministic recommendation; it does not invoke an LLM, use private accounts, or incur API costs.
+- Google sign-in and Calendar remain consent-based; Gmail, WhatsApp, OpenRouter and Resend are explicitly marked as unavailable.
+- Deployment preflight validates the Worker name, assets, dedicated D1 UUID and that DNS routing is not silently changed.
+- Preferred domain: `concierge.mabrigkorie.org`; no DNS or custom domain is changed by this commit. See [setup guide](docs/AUTOMATIC_API_SETUP.md).
 
 ## What is actually implemented
 
@@ -49,7 +58,7 @@ Node.js 22+ required. Tests use built-in `node:sqlite` only as a local D1 substi
 
 ```bash
 npm run check
-# 20 automated tests covering demo logic, OAuth state, sessions,
+# 20 original tests plus 10 API setup tests covering demo logic, OAuth state, sessions,
 # encryption, tenancy, Calendar scope and reads, audit, throttle, connection health, private export and transactional deletion.
 ```
 
@@ -94,3 +103,6 @@ Start with [DEPLOYMENT.md](DEPLOYMENT.md), then read [PRIVACY_DATA_LIFECYCLE.md]
 This standalone project is published in **`mabrig1/MABRIG-Agent-Concierge`**. Its source originated from an isolated development branch in private `mabrig1/MABRIG-AgentOS`. It must **never** reuse the original single-operator AgentOS admin password, session cookies, Durable Object, OpenRouter key, or Google tokens. Its Cloudflare Worker name and D1 namespace must remain separate. A GitHub source push does not imply a live deployment, consent configuration, or domain change.
 
 © 2026 MABRIG Technologies — https://www.mabrigkorie.org
+## Automatic connection APIs
+
+The setup endpoints only discover and recommend. They never provision secrets, OAuth clients, DNS records or paid model calls. Run `npm run preflight` before release, and use the [connection and domain guide](docs/AUTOMATIC_API_SETUP.md) after Cloudflare prerequisites have been verified.

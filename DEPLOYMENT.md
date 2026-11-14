@@ -1,6 +1,14 @@
 # Deploy MABRIG Agent Concierge (standalone Cloudflare Worker)
 
-**Status:** The GitHub repository contains buildable v0.3 source, tests, static assets, a Worker entrypoint and D1 migrations. This is a **limited read-only Calendar pilot**, not a public production SaaS. Deploy only to a dedicated pilot environment after consent/privacy review; there is no automatic deploy from GitHub.
+**Status:** The GitHub repository contains buildable v0.4 source, tests, static assets, a Worker entrypoint and D1 migrations. This is a **limited read-only Calendar pilot**, not a public production SaaS. Deploy only to a dedicated pilot environment after consent/privacy review; there is no automatic deploy from GitHub.
+
+## 0. Automatic API discovery and custom domain
+
+The new **Auto API setup** dashboard checks service readiness and recommends integrations from a plain-language goal. It does **not** create OAuth clients, grant private permissions, or attach DNS automatically.
+
+After confirming the hostname is available and owned, connect `concierge.mabrigkorie.org` to the dedicated Worker, set `PUBLIC_BASE_URL` to `https://concierge.mabrigkorie.org/`, and register Google's exact callback URI `https://concierge.mabrigkorie.org/api/oauth/google/callback`.
+
+Do not add a live `routes` entry to a Git-connected Worker until the zone and hostname have been checked. See [Automatic API setup](docs/AUTOMATIC_API_SETUP.md).
 
 ## 1. Verify code on a trusted machine
 
@@ -9,6 +17,7 @@ git clone https://github.com/mabrig1/MABRIG-Agent-Concierge.git
 cd MABRIG-Agent-Concierge
 npm install
 npm run check
+npm run preflight
 ```
 
 A local demo with fictional data can be viewed with `python3 -m http.server 4173`; avoid `file://` because the frontend uses ES modules. The Google connection is intentionally disabled when prerequisites are missing.
@@ -71,3 +80,6 @@ Provide a published privacy policy/terms, retention and support procedures, Clou
 ## Rollback
 
 Keep the last verified Worker deployment for rollback using Cloudflare's rollback controls. Revert application code or roll back the deployment separately from the D1 database; **do not delete the database or run destructive SQL as a rollback**. If connections are compromised, revoke access and rotate affected keys through secure operator procedures.
+## Safe readiness verification
+
+`GET /api/setup/readiness` checks whether D1's user schema exists, whether the hostname matches the configured canonical origin, and whether OAuth prerequisites are present. It does not return secret values or verify provider approval. `POST /api/setup/plan` accepts an 8–500-character goal and returns a deterministic no-network setup recommendation. The web app offers both operations.
