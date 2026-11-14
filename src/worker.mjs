@@ -4,6 +4,7 @@
  * Depends on Cloudflare D1 + explicitly supplied server-side credentials.
  */
 import {TEMPLATES, createAgent} from './engine.mjs';
+import {getSetupReadiness,planSetup} from './setup-api.mjs';
 
 export const CALENDAR_SCOPE='https://www.googleapis.com/auth/calendar.events.readonly';
 export const ID_SCOPES='openid email profile';
@@ -314,9 +315,28 @@ async function deleteAccount(request,env,user,base){
   return json({deleted:true,providerRevoked,notice:providerRevoked||!connection?'Your Concierge account and its stored data were deleted.':'Your Concierge account and its stored data were deleted. To revoke Google access fully, remove MABRIG from your Google Account permissions.'},200,{'Set-Cookie':deleteCookie(sessionCookie(base),base)});
 }
 
+async function publicSetupReadiness(request,env){
+  let schemaReady=false;
+  if(env?.DB&&typeof env.DB.prepare==='function'){
+    try{
+      const table=await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='users'").first();
+      schemaReady=table?.name==='users';
+    }catch{/* A missing schema or DB outage remains a setup blocker. */}
+  }
+  return getSetupReadiness(env,{schemaReady,requestOrigin:new URL(request.url).origin});
+}
+
 export async function handleApi(request,env){
   const u=new URL(request.url);const path=u.pathname;
-  if(path==='/api/health')return json({ok:true,app:'mabrig-agent-concierge',version:'0.3.0'});
+  if(path==='/api/health')return json({ok:true,app:'mabrig-agent-concierge',version:'0.4.0'});
+  if(path==='/api/setup/readiness'&&request.method==='GET')return json(await publicSetupReadiness(request,env));
+  if(path==='/api/setup/plan'&&request.method==='POST'){
+    const origin=request.headers.get('Origin');
+    if(origin&&origin!==u.origin)return error(CORS_DENIED,403);
+    const body=await readBody(request);
+    try{return json(planSetup(body?.goal,await publicSetupReadiness(request,env)));}
+    catch(e){return error(e.message||'Invalid setup request.',400);}
+  }
   if(!config(env).configured){if(path==='/api/status')return json({configured:false,signedIn:false,connection:{googleCalendar:false,gmail:false},notice:'Owner must configure a separate Worker and verified Google OAuth first.'});return error('Live service is not configured. You can still use safe sample demos.',503);}
   let base;try{base=safeBaseUrl(env);}catch{return error('Service URL configuration is invalid.',503);}
   if(u.origin!==base.origin)return error('Unrecognized host.',403);
