@@ -1,0 +1,16 @@
+{
+  "name": "mabrig-agent-concierge",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npm run build && wrangler dev",
+    "build": "node scripts/build.mjs",
+    "test": "node scripts/build.mjs && node --test tests/*.test.mjs",
+    "check": "npm test && node --check src/app.mjs && node --check src/engine.mjs && node --check src/worker.mjs && npm run build",
+    "deploy": "npm run build && wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.47.0"
+  }
+}

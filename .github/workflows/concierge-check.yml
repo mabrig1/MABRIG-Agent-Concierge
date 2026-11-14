@@ -1,0 +1,27 @@
+name: Agent Concierge CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify app, security boundaries and build
+        run: npm run check
+      - name: Ensure no backend source is published in dist
+        run: |
+          test -f dist/index.html
+          test -f dist/src/app.mjs
+          test -f dist/src/engine.mjs
+          test ! -f dist/src/worker.mjs
+          test ! -d dist/db
+          test ! -f dist/.dev.vars
