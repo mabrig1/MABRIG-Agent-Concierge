@@ -5,13 +5,13 @@ import {handleApi} from '../src/worker.mjs';
 
 const origin='https://concierge.mabrigkorie.org';
 const fakeKey='A'.repeat(43);
-const goodEnv={DB:{prepare(){return {first:async()=>({name:'users'})};}},GOOGLE_CLIENT_ID:'client',GOOGLE_CLIENT_SECRET:'secret',CREDENTIALS_KEY:fakeKey,PUBLIC_BASE_URL:origin+'/'};
+const goodEnv={DB:{prepare(){return {first:async()=>({name:'users'})};}},GOOGLE_CLIENT_ID:'client',GOOGLE_CLIENT_SECRET:'SENSITIVE_DEMO_SECRET_987',CREDENTIALS_KEY:fakeKey,PUBLIC_BASE_URL:origin+'/'};
 
 test('readiness reports migration missing without leaking credentials',()=>{
   const r=getSetupReadiness(goodEnv,{schemaReady:false,requestOrigin:origin});
   assert.equal(r.mode,'demo_only');
   assert.equal(r.checks.database.status,'needs_migration');
-  assert.equal(JSON.stringify(r).includes('secret'),false);
+  assert.equal(JSON.stringify(r).includes('SENSITIVE_DEMO_SECRET_987'),false);
   assert.equal(JSON.stringify(r).includes(fakeKey),false);
 });
 test('ready app still requires separate user consent',()=>{
